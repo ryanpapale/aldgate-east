@@ -1,0 +1,26 @@
+[project]
+name = "tfl"
+version = "0.1.0"
+description = "App for visualising TFL data"
+readme = "README.md"
+authors = [
+    { name = "Ryan Papale", email = "ryanpapale@gmail.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "dotenv>=0.9.9",
+    "orjson>=3.12.0",
+    "plotly>=7.1.0",
+    "polars>=1.44.2",
+    "requests>=2.34.2",
+    "streamlit>=1.65.0",
+    "typing-extensions>=4.16.0",
+]
+
+[project.scripts]
+crowd = "tfl.main:main"
+app = "app.main:main"
+
+[build-system]
+requires = ["uv_build>=0.12.7,<0.13.0"]
+build-backend = "uv_build"
