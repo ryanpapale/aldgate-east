@@ -69,12 +69,16 @@ def show_data(slider: int) -> tuple:
         .with_columns(
             time_remaining = pl.col("expected_arrival") - pl.col("time_utc")
         )
+        .filter(
+            pl.col("expected_arrival") >= dt.now(timezone.utc)
+        )
         .select(
             pl.col("line"),
             pl.col("platform"),
             pl.col("destination"),
             pl.col("time_remaining")
         )
+
         .sort("time_remaining")
         .group_by(["line", "platform"])
         .first()
@@ -99,7 +103,6 @@ with col_1:
         data_arrivals
         .filter(pl.col("platform") == "Westbound - Platform 1")
         .select(
-            # pl.col("line"),
             pl.col("destination"),
             pl.col("time_remaining")
         )
@@ -107,7 +110,8 @@ with col_1:
     st.subheader("Westbound - Platform 1")
     st.dataframe(data_col_1, column_config = {
         "destination": "Destination",
-        "time_remaining": "Arrival Time"
+        "time_remaining": "Arrival Time",
+        "expected_arrival": "Expected Arrival"
     })
 
 with col_2:
@@ -115,7 +119,6 @@ with col_2:
         data_arrivals
         .filter(pl.col("platform") == "Eastbound - Platform 2")
         .select(
-            # pl.col("line"),
             pl.col("destination"),
             pl.col("time_remaining")
         )
@@ -123,7 +126,8 @@ with col_2:
     st.subheader("Eastbound - Platform 2")
     st.dataframe(data_col_2, column_config = {
         "destination": "Destination",
-        "time_remaining": "Arrival Time"
+        "time_remaining": "Arrival Time",
+        "expected_arrival": "Expected Arrival"
     })
 # st.table(data_arrivals)
 
