@@ -5,7 +5,6 @@ from tfl.tfl_client import tflClient
 
 def main():
     db = database()
-    db.init_db()
 
     tfl = tflClient()
 
@@ -47,7 +46,7 @@ def main():
         finally:
             pass
 
-        time.sleep(300)
+        time.sleep(60)
 
 if __name__ == "__main__":
     main()

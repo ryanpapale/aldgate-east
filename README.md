@@ -4,8 +4,9 @@ SQLite database, and visualizes it through a dashboard.
 
 ## Description
 Data pulled includes arrivals, disruptions,
-and crowding.
-
+and crowding. This is largely just me practicing using 
+uv and setting up systemd .services. Disclaimer: no AI
+use, any mistakes were human made.
 
 ## Structure
 ```

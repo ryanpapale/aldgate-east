@@ -8,7 +8,7 @@ import plotly.express as px
 """
 # Aldgate East Station
 """
-def show_data(slider: int) -> pl.DataFrame:
+def show_data(slider: int) -> tuple:
     db = tfl.database_client.database()
 
     data_crowding, data_disruptions, data_arrivals = (
@@ -24,6 +24,7 @@ def show_data(slider: int) -> pl.DataFrame:
         .with_columns(
             pl.col("time_local").str.to_datetime(time_zone = "Europe/London"),
             pl.col("time_utc").str.to_datetime(time_zone = "UTC"),
+            
         )
         .filter(
             pl.col("time_utc") >= dt.now(timezone.utc).date() - timedelta(st.session_state.slider)
@@ -58,9 +59,11 @@ def show_data(slider: int) -> pl.DataFrame:
     data_arrivals = (
         data_arrivals
         .with_columns(
-            pl.col("time_utc").str.to_datetime(time_zone = "UTC"),
-            pl.col("expected_arrival").str.to_datetime(time_zone = "UTC"),
-            pl.col("destination").str.replace(" Underground Station", "")
+            pl.col("time_utc").cast(pl.String).str.to_datetime(time_zone="UTC"),
+            pl.col("expected_arrival").cast(pl.String).str.to_datetime(time_zone="UTC"),
+            pl.col("destination").cast(pl.String).str.replace(
+                " Underground Station", ""
+            )
         )
         .with_columns(
             time_remaining = pl.col("expected_arrival") - pl.col("time_utc")

@@ -7,8 +7,6 @@ class database:
         self.PATH_DATA = Path(Path(__file__).resolve().parent.parent.parent, "data")
         self.PATH_DATA.mkdir(parents = True, exist_ok = True)
 
-    def init_db(self) -> None:
-        # if not Path(self.PATH_DATA, "tfl.db").exists():
         with sqlite3.connect("data/tfl.db") as conn:
             cursor = conn.cursor()
             
@@ -44,45 +42,45 @@ class database:
             """)
     
     def write_crowding(self, js: dict) -> None:
-            conn = sqlite3.connect(Path(self.PATH_DATA, "tfl.db"))
-                
-            curs = conn.cursor()
-            curs.execute("""
-                INSERT INTO crowding (data_available, percentage_baseline, time_utc, time_local)
-                VALUES (?, ?, ?, ?)""",
-                (js["dataAvailable"], js["percentageOfBaseline"], js["timeUtc"], js["timeLocal"])
-            )
+        conn = sqlite3.connect(Path(self.PATH_DATA, "tfl.db"))
+            
+        curs = conn.cursor()
+        curs.execute("""
+            INSERT INTO crowding (data_available, percentage_baseline, time_utc, time_local)
+            VALUES (?, ?, ?, ?)""",
+            (js["dataAvailable"], js["percentageOfBaseline"], js["timeUtc"], js["timeLocal"])
+        )
 
-            conn.commit()
-            conn.close()
+        conn.commit()
+        conn.close()
 
     def write_disruptions(self, ls: list) -> None:
-            conn = sqlite3.connect(Path(self.PATH_DATA, "tfl.db"))
-                
-            curs = conn.cursor()
-            curs.executemany("""
-                INSERT INTO disruptions (line, description, time_utc, time_local)
-                VALUES (:line, :description, :time_utc, :time_local)""",
-                ls
-            )
+        conn = sqlite3.connect(Path(self.PATH_DATA, "tfl.db"))
+            
+        curs = conn.cursor()
+        curs.executemany("""
+            INSERT INTO disruptions (line, description, time_utc, time_local)
+            VALUES (:line, :description, :time_utc, :time_local)""",
+            ls
+        )
 
-            conn.commit()
-            conn.close()
+        conn.commit()
+        conn.close()
 
     def write_arrivals(self, ls: list) -> None:
-            conn = sqlite3.connect(Path(self.PATH_DATA, "tfl.db"))
-                
-            curs = conn.cursor()
-            curs.executemany("""
-                INSERT INTO arrivals (line, platform, destination, expected_arrival, time_utc)
-                VALUES (:line, :platform, :destination, :expected_arrival, :time_utc)""",
-                ls
-            )
+        conn = sqlite3.connect(Path(self.PATH_DATA, "tfl.db"))
+            
+        curs = conn.cursor()
+        curs.executemany("""
+            INSERT INTO arrivals (line, platform, destination, expected_arrival, time_utc)
+            VALUES (:line, :platform, :destination, :expected_arrival, :time_utc)""",
+            ls
+        )
 
-            conn.commit()
-            conn.close()
+        conn.commit()
+        conn.close()
 
-    def read_db(self) -> pl.dataframe:
+    def read_db(self) -> tuple:
         conn = sqlite3.connect(Path(self.PATH_DATA, "tfl.db"))
                 
         df_crowding = pl.read_database("SELECT * FROM crowding", connection = conn)
@@ -92,7 +90,3 @@ class database:
         conn.close()
 
         return df_crowding, df_disruptions, df_arrivals
-
-if __name__ == "__main__":
-    db = database()
-    db.read_db()

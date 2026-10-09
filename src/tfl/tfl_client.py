@@ -51,7 +51,7 @@ class tflClient:
                 "timeLocal": str(datetime.now(ZoneInfo("Europe/London")))
             }
 
-    def pull_disruptions(self) -> dict:
+    def pull_disruptions(self) -> list:
         try:
             r = self.SESSION.get(self.DISRUPTIONS_URL, params = self.PARAMS)
 
@@ -109,14 +109,10 @@ class tflClient:
             return arrivals
 
         except:
-            return {
+            return [{
                 "line": "",
                 "platform": "",
                 "destination": "",
                 "expected_arrival": "",
                 "time_utc": str(datetime.now(timezone.utc))
-            }
-
-if __name__ == "__main__":
-    tfl = tflClient()
-    test = tfl.pull_arrivals()
+            }]
