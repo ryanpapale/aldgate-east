@@ -61,7 +61,7 @@ def show_data(slider: int) -> tuple:
         data_arrivals
         .with_columns(
             pl.col("time_utc").cast(pl.String).str.to_datetime(time_zone="UTC"),
-            pl.col("expected_arrival").cast(pl.String).str.to_datetime(time_zone="UTC"),
+            pl.col("expected_arrival").replace("", None).cast(pl.String).str.to_datetime(time_zone="UTC", strict = False),
             pl.col("destination").cast(pl.String).str.replace(
                 " Underground Station", ""
             )
