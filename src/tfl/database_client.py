@@ -1,6 +1,11 @@
-from pathlib import Path
-import polars as pl
+import logging
 import sqlite3
+
+from pathlib import Path
+
+import polars as pl
+
+logger = logging.getLogger(__name__)
 
 class database:
     def __init__(self) -> None:
@@ -81,8 +86,8 @@ class database:
         conn.close()
 
     def read_db(self) -> tuple:
-        conn = sqlite3.connect(Path(self.PATH_DATA, "tfl.db"))
-                
+        conn = sqlite3.connect(f"file:{self.PATH_DATA}/tfl.db?mode=ro", uri = True)
+
         df_crowding = pl.read_database("SELECT * FROM crowding", connection = conn)
         df_disruptions = pl.read_database("SELECT * FROM disruptions", connection = conn)
         df_arrivals = pl.read_database("SELECT * FROM arrivals", connection = conn)

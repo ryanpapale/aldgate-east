@@ -1,9 +1,14 @@
+import logging
 import os
 import requests
+from tenacity import before_sleep_log, retry, retry_if_exception_type, stop_after_attempt, wait_fixed
 
 from datetime import datetime, timezone
 from dotenv import load_dotenv
+from requests.exceptions import RequestException
 from zoneinfo import ZoneInfo
+
+logger = logging.getLogger(__name__)
 
 class tflClient:
     def __init__(self) -> None:
@@ -36,83 +41,121 @@ class tflClient:
             "app_key": self.PRIMARY_KEY
         }
 
+    @retry(
+        retry=retry_if_exception_type(RequestException),
+        stop = stop_after_attempt(3),
+        wait = wait_fixed(2),
+        before_sleep=before_sleep_log(logger, logging.WARNING)
+    )
     def pull_crowding(self) -> dict:
-        try:
-            r = self.SESSION.get(self.CROWDING_URL, params = self.PARAMS)
-            r.raise_for_status()
+        r = self.SESSION.get(
+            self.CROWDING_URL,
+            params = self.PARAMS,
+            timeout = 10
+        )
 
-            return r.json()
-        
-        except:
-            return {
-                "dataAvailable": False,
-                "percentageOfBaseline": None,
-                "timeUtc": str(datetime.now(timezone.utc)),
-                "timeLocal": str(datetime.now(ZoneInfo("Europe/London")))
-            }
+        r.raise_for_status()
 
-    def pull_disruptions(self) -> list:
-        try:
-            r = self.SESSION.get(self.DISRUPTIONS_URL, params = self.PARAMS)
+        js = r.json()
 
-            js = r.json()
-            disruptions = []
-            lines = []
+        if not isinstance(js, dict):
+            raise ValueError("TfL crowding response not type dict")
 
-            for l in js:
+        REQUIRED_KEYS = {"dataAvailable", "percentageOfBaseline", "timeUtc", "timeLocal"}
+        missing_keys = REQUIRED_KEYS - js.keys()
+
+        if missing_keys:
+            raise ValueError("Tfl crowding returned missing keys")
+
+        return js
+
+    @retry(
+        retry=retry_if_exception_type(RequestException),
+        stop = stop_after_attempt(3),
+        wait = wait_fixed(2),
+        before_sleep=before_sleep_log(logger, logging.WARNING)
+    )
+    def pull_disruptions(self) -> list[dict | None]:
+        r = self.SESSION.get(
+            self.DISRUPTIONS_URL,
+            params = self.PARAMS,
+            timeout = 10
+        )
+
+        r.raise_for_status()
+
+        js = r.json()
+
+        if not isinstance(js, list):
+            raise ValueError("TfL disruptions response not type list")
+
+        REQUIRED_KEYS = {"description"}
+    
+        disruptions = []
+        lines = []
+        for l in js:
+            missing_keys = REQUIRED_KEYS - l.keys()
+
+            if missing_keys:
+                raise ValueError("Tfl disruptions returned missing keys")
+
+            disruptions.append({
+                "line": l["description"].split(":")[0].strip(),
+                "description": l["description"].split(":")[1].strip(),
+                "time_utc": str(datetime.now(timezone.utc)),
+                "time_local": str(datetime.now(ZoneInfo("Europe/London")))
+            })
+
+            lines.append(l["description"].split(":")[0].strip())
+
+        missing_lines = [l for l in self.ALL_LINES if l not in lines]
+
+        if len(missing_lines) > 0:
+            for l in missing_lines:
                 disruptions.append({
-                    "line": l["description"].split(":")[0].strip(),
-                    "description": l["description"].split(":")[1].strip(),
+                    "line": l,
+                    "description": "Good service.",
                     "time_utc": str(datetime.now(timezone.utc)),
                     "time_local": str(datetime.now(ZoneInfo("Europe/London")))
                 })
 
-                lines.append(l["description"].split(":")[0].strip())
-
-            missing_lines = [l for l in self.ALL_LINES if l not in lines]
-   
-            if len(missing_lines) > 0:
-                for l in missing_lines:
-                    disruptions.append({
-                        "line": l,
-                        "description": "GOOD SERVICE.",
-                        "time_utc": str(datetime.now(timezone.utc)),
-                        "time_local": str(datetime.now(ZoneInfo("Europe/London")))
-                    })
-
-            return disruptions
-
-        except:
-            return [{
-                "line": "",
-                "description": "",
-                "time_utc": str(datetime.now(timezone.utc)),
-                "time_local": str(datetime.now(ZoneInfo("Europe/London")))
-            }]
+        return disruptions
         
+    @retry(
+        retry=retry_if_exception_type(RequestException),
+        stop = stop_after_attempt(3),
+        wait = wait_fixed(2),
+        before_sleep=before_sleep_log(logger, logging.WARNING)
+    )
+    def pull_arrivals(self) -> list[dict | None]:
+        r = self.SESSION.get(
+            self.ARRIVAL_URL,
+            params = self.PARAMS,
+            timeout = 10    
+        )
 
-    def pull_arrivals(self) -> list:
-        r = self.SESSION.get(self.ARRIVAL_URL, params = self.PARAMS)
+        r.raise_for_status()
+
         js = r.json()
 
-        try:
-            arrivals = []
-            for t in js:
-                arrivals.append({
-                    "line": t["lineName"] + " Line",
-                    "platform": t["platformName"],
-                    "destination": t["destinationName"],
-                    "expected_arrival": t["expectedArrival"],
-                    "time_utc": t["timestamp"]
-                })
-                            
-            return arrivals
+        if not isinstance(js, list):
+            raise ValueError("TfL arrivals response not type list")
 
-        except:
-            return [{
-                "line": "",
-                "platform": "",
-                "destination": "",
-                "expected_arrival": "",
-                "time_utc": str(datetime.now(timezone.utc))
-            }]
+        REQUIRED_KEYS = {"lineName", "platformName", "destinationName", "expectedArrival", "timestamp"}
+
+        arrivals = []
+        for t in js:
+            missing_keys = REQUIRED_KEYS - t.keys()
+
+            if missing_keys:
+                raise ValueError("Tfl arrivals returned missing keys")
+            
+            arrivals.append({
+                "line": t["lineName"] + " Line",
+                "platform": t["platformName"],
+                "destination": t["destinationName"],
+                "expected_arrival": t["expectedArrival"],
+                "time_utc": t["timestamp"]
+            })
+                        
+        return arrivals

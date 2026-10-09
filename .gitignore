@@ -16,4 +16,7 @@ wheels/
 .DS_Store
 
 # Data
-data/tfl.db
+*.db
+
+# Log
+.log

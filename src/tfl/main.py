@@ -1,50 +1,45 @@
+
+import logging
 import time
 
+from logging.handlers import RotatingFileHandler
 from tfl.database_client import database
 from tfl.tfl_client import tflClient
 
-def main():
-    db = database()
+logging.basicConfig(
+    handlers=[RotatingFileHandler('./.log', maxBytes=100000, backupCount=2)],
+    level=logging.DEBUG,
+    format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
+    datefmt='%Y-%m-%dT%H:%M:%S'
+)
 
+logger = logging.getLogger(__name__)
+
+def pull_write(fn_read, fn_write) -> None:
+    data = fn_read()
+    fn_write(data)    
+
+def main():
+    logger.info("Starting Aldgate East App.")
+
+    db = database()
     tfl = tflClient()
 
     while True:
-        js_crowd = tfl.pull_crowding()
-        ls_disruptions = tfl.pull_disruptions()
-        ls_arrivals = tfl.pull_arrivals()
-
-        # Crowding
         try:
-            db.write_crowding(js_crowd)
-
+            pull_write(tfl.pull_arrivals, db.write_arrivals)
         except:
-            time.sleep(5)
-            db.write_crowding(js_crowd)
-        
-        finally:
-            pass
-        
-        # Disruptions
+            logger.exception("Skipping arrivals for this cycle.")
+
         try:
-            db.write_disruptions(ls_disruptions)
-
+            pull_write(tfl.pull_crowding, db.write_crowding)
         except:
-            time.sleep(5)
-            db.write_disruptions(ls_disruptions)
-        
-        finally:
-            pass
+            logger.exception("Skipping crowding for this cycle.")
 
-        # Arrivals
         try:
-            db.write_arrivals(ls_arrivals)
-
+            pull_write(tfl.pull_disruptions, db.write_disruptions)
         except:
-            time.sleep(5)
-            db.write_arrivals(ls_arrivals)
-        
-        finally:
-            pass
+            logger.exception("Skipping disruptions for this cycle.")
 
         time.sleep(60)
 

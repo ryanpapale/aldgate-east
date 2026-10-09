@@ -1,9 +1,10 @@
 import tfl.database_client
-import streamlit as st
-import polars as pl
-from datetime import datetime as dt, timezone, timedelta
-import plotly.express as px
 
+from datetime import datetime as dt, timezone, timedelta
+
+import plotly.express as px
+import polars as pl
+import streamlit as st
 
 """
 # Aldgate East Station

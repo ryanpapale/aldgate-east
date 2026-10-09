@@ -1,12 +1,13 @@
 # Aldgate East App
-This application pulls data from the TFL API, stores it in a 
-SQLite database, and visualizes it through a dashboard.
+This application pulls data from the TFL API, 
+stores it in a SQLite database, and visualizes 
+it through a dashboard.
 
 ## Description
 Data pulled includes arrivals, disruptions,
-and crowding. This is largely just me practicing using 
-uv and setting up systemd .services. Disclaimer: no AI
-use, any mistakes were human made.
+and crowding. This is a random project but 
+it brings back many fond memories. I spent
+so many years going in and out of this station.
 
 ## Structure
 ```
@@ -26,4 +27,5 @@ use, any mistakes were human made.
 ```
 
 ## Setup
-Ensure that TFL API keys are set in the .env file and named PRIMARY_KEY and SECONDARY_KEY.
+Ensure that TFL API keys are set in the .env 
+file and named PRIMARY_KEY and SECONDARY_KEY.
