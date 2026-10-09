@@ -1,14 +1,19 @@
-
 import logging
 import time
 
+from pathlib import Path
 from logging.handlers import RotatingFileHandler
 from tfl.database_client import database
 from tfl.tfl_client import tflClient
 
+ROOT = Path(Path(__file__).resolve().parent.parent.parent)
+DATA = ROOT / "data"
+
+DATA.mkdir(exist_ok = True, parents = True)
+
 logging.basicConfig(
     handlers=[RotatingFileHandler('./.log', maxBytes=100000, backupCount=2)],
-    level=logging.DEBUG,
+    level=logging.INFO,
     format="[%(asctime)s] %(levelname)s [%(name)s.%(funcName)s:%(lineno)d] %(message)s",
     datefmt='%Y-%m-%dT%H:%M:%S'
 )
