@@ -19,7 +19,7 @@ wheels/
 *.db
 
 # Log
-.log
+.log*
 
 # General
 TO-DO.md

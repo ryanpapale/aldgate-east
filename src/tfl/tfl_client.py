@@ -67,7 +67,15 @@ class tflClient:
         if missing_keys:
             raise ValueError("Tfl crowding returned missing keys")
 
-        return js
+        crowding = {
+            "dataAvailable": js["dataAvailable"],
+            "percentageOfBaseline": js["percentageOfBaseline"],
+            "timeUtc": js.get("timeUtc") or None,
+            "timeLocal": js.get("timeLocal") or None
+
+        }
+
+        return crowding
 
     @retry(
         retry=retry_if_exception_type(RequestException),
@@ -141,7 +149,7 @@ class tflClient:
         if not isinstance(js, list):
             raise ValueError("TfL arrivals response not type list")
 
-        REQUIRED_KEYS = {"lineName", "platformName", "destinationName", "expectedArrival", "timestamp"}
+        REQUIRED_KEYS = {"lineName", "platformName", "expectedArrival", "timestamp"}
 
         arrivals = []
         for t in js:
@@ -149,13 +157,19 @@ class tflClient:
 
             if missing_keys:
                 raise ValueError("Tfl arrivals returned missing keys")
+
+            if t["expectedArrival"] == "":
+                t["expectedArrival"] = None
+
+            if t["timestamp"] == "":
+                t["timestamp"] = None
             
             arrivals.append({
                 "line": t["lineName"] + " Line",
                 "platform": t["platformName"],
-                "destination": t["destinationName"],
-                "expected_arrival": t["expectedArrival"],
-                "time_utc": t["timestamp"]
+                "destination": t.get("destinationName") or None,
+                "expected_arrival": t.get("expectedArrival") or None,
+                "time_utc": t.get("timestamp") or None
             })
                         
         return arrivals
