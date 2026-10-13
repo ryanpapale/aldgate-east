@@ -139,7 +139,6 @@ with col_2:
         "time_remaining": "Arrival Time",
         "expected_arrival": "Expected Arrival"
     })
-# st.table(data_arrivals)
 
 """
 ## Disruptions
