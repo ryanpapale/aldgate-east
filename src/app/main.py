@@ -113,6 +113,7 @@ with col_1:
             pl.col("destination"),
             pl.col("time_remaining")
         )
+        .sort("time_remaining")
     )
     st.subheader("Westbound - Platform 1")
     st.dataframe(data_col_1, column_config = {
@@ -131,6 +132,7 @@ with col_2:
             pl.col("destination"),
             pl.col("time_remaining")
         )
+        .sort("time_remaining")
     )
     st.subheader("Eastbound - Platform 2")
     st.dataframe(data_col_2, column_config = {
@@ -160,7 +162,7 @@ fig = px.line(
     }
 )
 
-st.plotly_chart(fig, use_container_width = True)
+st.plotly_chart(fig, width="stretch")
 
 add_slider = st.slider(
     'How many historical days to include in plot?',

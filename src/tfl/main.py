@@ -1,6 +1,7 @@
 import logging
 import time
 
+from datetime import datetime
 from pathlib import Path
 from logging.handlers import RotatingFileHandler
 from tfl.database_client import database
@@ -31,22 +32,23 @@ def main():
     tfl = tflClient()
 
     while True:
-        try:
-            pull_write(tfl.pull_arrivals, db.write_arrivals)
-        except:
-            logger.exception("Skipping arrivals for this cycle.")
+        if datetime.now().minute % 5 == 0:
+            try:
+                pull_write(tfl.pull_arrivals, db.write_arrivals)
+            except:
+                logger.exception("Skipping arrivals for this cycle.")
 
-        try:
-            pull_write(tfl.pull_crowding, db.write_crowding)
-        except:
-            logger.exception("Skipping crowding for this cycle.")
+            try:
+                pull_write(tfl.pull_crowding, db.write_crowding)
+            except:
+                logger.exception("Skipping crowding for this cycle.")
 
-        try:
-            pull_write(tfl.pull_disruptions, db.write_disruptions)
-        except:
-            logger.exception("Skipping disruptions for this cycle.")
+            try:
+                pull_write(tfl.pull_disruptions, db.write_disruptions)
+            except:
+                logger.exception("Skipping disruptions for this cycle.")
 
-        time.sleep(60)
+            time.sleep(240)
 
 if __name__ == "__main__":
     main()

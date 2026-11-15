@@ -45,7 +45,7 @@ class tflClient:
         retry=retry_if_exception_type(RequestException),
         stop = stop_after_attempt(3),
         wait = wait_fixed(2),
-        before_sleep=before_sleep_log(logger, logging.WARNING)
+        before_sleep = before_sleep_log(logger, logging.WARNING)
     )
     def pull_crowding(self) -> dict:
         r = self.SESSION.get(
@@ -133,7 +133,7 @@ class tflClient:
         retry=retry_if_exception_type(RequestException),
         stop = stop_after_attempt(3),
         wait = wait_fixed(2),
-        before_sleep=before_sleep_log(logger, logging.WARNING)
+        before_sleep = before_sleep_log(logger, logging.WARNING)
     )
     def pull_arrivals(self) -> list[dict | None]:
         r = self.SESSION.get(
